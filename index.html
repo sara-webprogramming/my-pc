@@ -1,19 +1,93 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        h1{
-            width: 450px;
-            margin: auto;
-            background-color: cadetblue;
-            font-size: 22px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>CRUD با JSONPlaceholder</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input, button { margin: 5px 0; padding: 5px; }
+    .post { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+  </style>
 </head>
 <body>
-    <h1>Lorem  مخقثئ ipsum dolor sit.</h1>
+  <h1>CRUD با JSONPlaceholder</h1>
+
+  <h3>اضافه کردن پست جدید</h3>
+  <input type="text" id="title" placeholder="عنوان">
+  <textarea id="body" placeholder="متن پست"></textarea><br>
+  <button onclick="createPost()">افزودن</button>
+
+  <h3>لیست پست‌ها</h3>
+  <div id="posts"></div>
+
+<script>
+const apiUrl = "https://jsonplaceholder.typicode.com/posts";
+
+// ✅ خواندن همه پست‌ها
+function fetchPosts() {
+  fetch(apiUrl)
+    .then(res => res.json())
+    .then(data => {
+      const postsDiv = document.getElementById("posts");
+      postsDiv.innerHTML = "";
+      data.slice(0,10).forEach(post => { // فقط 10 پست اول
+        postsDiv.innerHTML += `
+          <div class="post" id="post-${post.id}">
+            <h4>${post.title}</h4>
+            <p>${post.body}</p>
+            <button onclick="updatePost(${post.id})">ویرایش</button>
+            <button onclick="deletePost(${post.id})">حذف</button>
+          </div>
+        `;
+      });
+    });
+}
+
+// ✅ ایجاد پست جدید
+function createPost() {
+  const title = document.getElementById("title").value;
+  const body = document.getElementById("body").value;
+
+  fetch(apiUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, body })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert("پست اضافه شد! (شبیه‌سازی)");
+    fetchPosts();
+  });
+}
+
+// ✅ ویرایش پست
+function updatePost(id) {
+  const newTitle = prompt("عنوان جدید:");
+  const newBody = prompt("متن جدید:");
+
+  fetch(`${apiUrl}/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: newTitle, body: newBody })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert("پست ویرایش شد! (شبیه‌سازی)");
+    fetchPosts();
+  });
+}
+
+// ✅ حذف پست
+function deletePost(id) {
+  fetch(`${apiUrl}/${id}`, { method: "DELETE" })
+    .then(() => {
+      alert("پست حذف شد! (شبیه‌سازی)");
+      fetchPosts();
+    });
+}
+
+// اجرا در بارگذاری صفحه
+fetchPosts();
+</script>
 </body>
 </html>
