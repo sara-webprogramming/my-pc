@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>CRUD با JSONBin.io</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+    input, textarea, button { display: block; margin: 5px 0; padding: 5px; width: 300px; }
+    .post { background: #fff; padding: 10px; margin: 10px 0; border-radius: 4px; }
+    button { cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<h1>CRUD با JSONBin.io</h1>
+
+<h3>اضافه کردن پست</h3>
+<input type="text" id="title" placeholder="عنوان">
+<textarea id="body" placeholder="متن پست"></textarea>
+<button onclick="createPost()">افزودن</button>
+
+<h3>لیست پست‌ها</h3>
+<div id="posts"></div>
+
+<script>
+const binId = "6996d28a80b27952c6e7ad3f"; // جایگزین با Bin ID
+const apiKey = "$2a$10$UrdhSKxBer6HoRn98b3jKOIRToAvfb17s/CksmXevlJKD/TqX7VBO"; // جایگزین با API Key
+let posts = [];
+
+// گرفتن داده‌ها از JSONBin
+async function fetchPosts() {
+  const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+    headers: { "X-Master-Key": apiKey }
+  });
+  const data = await res.json();
+  posts = data.record.posts;
+  renderPosts();
+}
+
+// نمایش داده‌ها
+function renderPosts() {
+  const postsDiv = document.getElementById("posts");
+  postsDiv.innerHTML = "";
+  posts.forEach(post => {
+    postsDiv.innerHTML += `
+      <div class="post" id="post-${post.id}">
+        <h4>${post.title}</h4>
+        <p>${post.body}</p>
+        <button onclick="editPost(${post.id})">ویرایش</button>
+        <button onclick="deletePost(${post.id})">حذف</button>
+      </div>
+    `;
+  });
+}
+
+// ایجاد پست جدید
+function createPost() {
+  const title = document.getElementById("title").value.trim();
+  const body = document.getElementById("body").value.trim();
+  if (!title || !body) return alert("عنوان و متن را وارد کنید");
+
+  const newPost = { id: Date.now(), title, body };
+  posts.push(newPost);
+  updateBin();
+  document.getElementById("title").value = "";
+  document.getElementById("body").value = "";
+}
+
+// ویرایش پست
+function editPost(id) {
+  const post = posts.find(p => p.id === id);
+  const newTitle = prompt("عنوان جدید:", post.title);
+  const newBody = prompt("متن جدید:", post.body);
+  if (newTitle !== null && newBody !== null) {
+    post.title = newTitle;
+    post.body = newBody;
+    updateBin();
+  }
+}
+
+// حذف پست
+function deletePost(id) {
+  posts = posts.filter(p => p.id !== id);
+  updateBin();
+}
+
+// بروزرسانی Bin روی JSONBin
+async function updateBin() {
+  await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Master-Key": apiKey
+    },
+    body: JSON.stringify({ posts })
+  });
+  renderPosts();
+}
+
+// اجرای اولیه
+fetchPosts();
+</script>
+
+</body>
+</html>
